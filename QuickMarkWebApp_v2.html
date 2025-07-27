@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>QuickMark</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    h1 {
+      text-align: center;
+    }
+    .question-nav {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    button {
+      padding: 10px;
+      font-size: 18px;
+    }
+    .selected {
+      background-color: #90ee90;
+    }
+    .grading-toggle {
+      margin-top: 10px;
+    }
+    .grading-toggle span {
+      margin-left: 10px;
+      font-weight: bold;
+    }
+    .summary {
+      margin-top: 20px;
+    }
+    .reset {
+      margin-top: 30px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <h1>QuickMark</h1>
+  <div class="question-nav">
+    <button onclick="goToFirst()">⏮ First</button>
+    <button onclick="prevQuestion()">⬅ Prev</button>
+    <div>Question <span id="qIndex">1</span>/100</div>
+    <button onclick="nextQuestion()">Next ➡</button>
+  </div>
+
+  <div class="options">
+    <button onclick="selectOption('A')" id="btnA">A</button>
+    <button onclick="selectOption('B')" id="btnB">B</button>
+    <button onclick="selectOption('C')" id="btnC">C</button>
+    <button onclick="selectOption('D')" id="btnD">D</button>
+  </div>
+
+  <div class="grading-toggle">
+    <button onclick="toggleCorrect()">Mark as Correct / Incorrect</button>
+    <span id="correctLabel">Not marked</span>
+  </div>
+
+  <div class="correction" id="correctionBlock" style="display:none; margin-top:10px;">
+    <p>Select correct answer:</p>
+    <div style="display:flex; gap:10px;">
+      <button onclick="setCorrection('A')">A</button>
+      <button onclick="setCorrection('B')">B</button>
+      <button onclick="setCorrection('C')">C</button>
+      <button onclick="setCorrection('D')">D</button>
+    </div>
+    <p>Current correction: <span id="currentCorrection">None</span></p>
+  </div>
+
+  <div class="summary">
+    <p>Total Correct: <span id="score">0</span> / 100</p>
+  </div>
+
+  <div class="reset">
+    <button onclick="resetAll()" style="background-color:red; color:white;">Reset All</button>
+  </div>
+
+  <script>
+    const maxQuestions = 100;
+    let currentIndex = 0;
+    let data = JSON.parse(localStorage.getItem('quickmarkData') || JSON.stringify(Array.from({length: maxQuestions}, () => ({ answer: null, correct: null, correction: null }))));
+
+    function save() {
+      localStorage.setItem('quickmarkData', JSON.stringify(data));
+      updateScore();
+    }
+
+    function updateUI() {
+      document.getElementById("qIndex").innerText = currentIndex + 1;
+      ['A','B','C','D'].forEach(opt => {
+        document.getElementById('btn' + opt).classList.remove('selected');
+      });
+      if (data[currentIndex].answer) {
+        document.getElementById('btn' + data[currentIndex].answer).classList.add('selected');
+      }
+      const correct = data[currentIndex].correct;
+      const label = document.getElementById("correctLabel");
+      if (correct === true) label.innerText = "✔️ Correct";
+      else if (correct === false) label.innerText = "❌ Incorrect";
+      else label.innerText = "Not marked";
+
+      const correctionBlock = document.getElementById("correctionBlock");
+      const currentCorrection = document.getElementById("currentCorrection");
+      if (data[currentIndex].correct === false) {
+        correctionBlock.style.display = "block";
+        currentCorrection.innerText = data[currentIndex].correction || "None";
+      } else {
+        correctionBlock.style.display = "none";
+      }
+
+      updateScore();
+    }
+
+    function selectOption(opt) {
+      data[currentIndex].answer = opt;
+      save();
+      updateUI();
+    }
+
+    function toggleCorrect() {
+      const val = data[currentIndex].correct;
+      if (val === true) data[currentIndex].correct = false;
+      else if (val === false) data[currentIndex].correct = null;
+      else data[currentIndex].correct = true;
+      save();
+      updateUI();
+    }
+
+    function setCorrection(opt) {
+      data[currentIndex].correction = opt;
+      save();
+      updateUI();
+    }
+
+    function nextQuestion() {
+      if (currentIndex < maxQuestions - 1) {
+        currentIndex++;
+        updateUI();
+      }
+    }
+
+    function prevQuestion() {
+      if (currentIndex > 0) {
+        currentIndex--;
+        updateUI();
+      }
+    }
+
+    function goToFirst() {
+      currentIndex = 0;
+      updateUI();
+    }
+
+    function updateScore() {
+      const score = data.filter(q => q.correct === true).length;
+      document.getElementById("score").innerText = score;
+    }
+
+    function resetAll() {
+      if (confirm("Are you sure you want to reset all answers and grading?")) {
+        data = Array.from({length: maxQuestions}, () => ({ answer: null, correct: null, correction: null }));
+        save();
+        updateUI();
+      }
+    }
+
+    updateUI();
+  </script>
+</body>
+</html>
