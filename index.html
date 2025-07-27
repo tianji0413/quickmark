@@ -53,6 +53,7 @@
   <h1>QuickMark</h1>
   <div class="question-nav">
     <button onclick="prevQuestion()">⬅ Prev</button>
+    <button onclick="goToFirst()">⏮ First</button>
     <div>Question <span id="qIndex">1</span>/100</div>
     <button onclick="nextQuestion()">Next ➡</button>
   </div>
@@ -130,6 +131,11 @@
         currentIndex--;
         updateUI();
       }
+    }
+    
+    function goToFirst() {
+      currentIndex = 0;
+      updateUI();
     }
 
     function updateScore() {
